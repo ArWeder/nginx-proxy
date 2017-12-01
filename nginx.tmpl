@@ -81,6 +81,7 @@ proxy_set_header X-Forwarded-Port $proxy_x_forwarded_port;
 
 # Mitigate httpoxy attack (see README for details)
 proxy_set_header Proxy "";
+limit_req_zone $binary_remote_addr zone=mylimit:10m rate=100r/m;
 {{ end }}
 
 {{ $enable_ipv6 := eq (or ($.Env.ENABLE_IPV6) "") "true" }}
@@ -286,6 +287,8 @@ server {
 	{{ end }}
 
 	location / {
+        limit_req zone=mylimit burst=10 nodelay;
+
 		{{ if eq $proto "uwsgi" }}
 		include uwsgi_params;
 		uwsgi_pass {{ trim $proto }}://{{ trim $upstream_name }};
